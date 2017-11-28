@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zp.mapper.AuthResourcesMapper">
+	<!-- 以下与实体类的中字段一致 -->
+	<sql id="selectId">
+		r.id id,
+		r.NAME name,
+		r.PARENTID parentId,
+		(select re.name from resources re where re.id = r.parentId ) parentName,
+		r.RESKEY resKey,
+		r.TYPE type,
+		r.RESURL resUrl,
+		r.LEVEL level,
+		r.DESCRIPTION description,
+		r.PRO_ID proId
+	</sql>
+	<!-- 查询列 -->
+	<select id="queryList" parameterType="java.util.HashMap"
+		resultType="com.zp.entity.Resources">
+		select
+		r.id id,
+		r.NAME name,
+		r.PARENTID parentId,
+		(select re.name from resources re where re.id = r.parentId ) parentName,
+		r.RESKEY resKey,
+		r.TYPE type,
+		r.RESURL resUrl,
+		r.LEVEL level,
+		r.DESCRIPTION description,
+		r.PRO_ID proId,
+		ap.name projectName
+		from resources r left join project ap on r.pro_id = ap.id
+		<where>
+			<if test="resources.name != null and resources.name != ''">
+				and instr(r.name,#{resources.name})>0
+			</if>
+			<if test="resources.proId != null and resources.proId != ''">
+				and instr(r.pro_id,#{resources.proId})>0
+			</if>
+		</where>
+		order By r.level asc ,r.id asc
+	</select>
+	<!-- 查询所有资源 -->
+	<select id="findAll" resultType="com.zp.entity.Resources">
+		select
+		<include refid="selectId" />
+		from resources r order By level asc
+	</select>
+	<!-- 根据资源id获取资源角色配置表记录 -->
+	<select id="getRoleRescoursBySourceId" parameterType="String"
+		resultType="String">
+		select resc_id from resources_role where
+		resc_id=#{sourceid}
+	</select>
+	<!-- 根据资源父节点获取资源信息 -->
+	<select id="getResourcesIdByParentId" parameterType="String"
+		resultType="com.zp.entity.Resources">
+		select
+		<include refid="selectId" />
+		from resources r where parentId=#{parentId}
+	</select>
+	<!-- 删除子节点 -->
+	<delete id="deleteById" parameterType="String">
+		delete from resources
+		where id=#{id}
+	</delete>
+
+	<!-- 根据资源id，删除资源角色关联 -->
+	<delete id="deleteRoleByResId" parameterType="java.lang.String">
+		delete from
+		resources_role marr
+		where marr.resc_id =#{resId}
+	</delete>
+	<!-- 根据项目id查询资源 -->
+	<select id="queryByProKey" parameterType="java.lang.Integer"
+		resultType="com.zp.entity.Resources">
+		SELECT
+		id,
+		name,
+		parentId,
+		(select r.name from resources r where r.id = mar.parentId ) parentName,
+		resKey,
+		type,
+		resUrl,
+		level,
+		description
+		FROM
+		resources mar
+		where
+		mar.reskey like concat((SELECT ap.pro_key FROM project ap where ap.id = #{projectId,jdbcType=NUMERIC}),'%')
+	</select>
+	<!-- 根据资源id查询资源 -->
+	<select id="getById" parameterType="String" resultType="com.zp.entity.Resources">
+		select
+		mar.id,
+		mar.name,
+		mar.parentId,
+		mar.resKey,
+		mar.type,
+		mar.resUrl,
+		mar.level ,
+		mar.pro_id proId,
+		mar.description ,
+		ap.name projectName
+		from resources mar
+		left join project ap on mar.pro_id = ap.id
+		where mar.id=#{id}
+	</select>
+	<!-- -->
+	<select id="queryByProId" parameterType="java.util.Map"
+		resultType="com.zp.entity.Resources">
+		select
+		mar.id,
+		mar.name,
+		mar.parentId,
+		(select r.name from resources r where r.id = mar.parentId ) parentName,
+		mar.resKey,
+		mar.type,
+		mar.resUrl,
+		mar.level,
+		mar.description
+		from resources mar
+		<!-- 修改的地方 -->
+		left join project ap on mar.pro_id = ap.id
+		where
+		<choose>
+			<when test="type == '1'  or type ==1">
+				mar.type = 0
+			</when>
+			<when test="type == '2' or type == 2">
+				mar.type &gt;= 1
+			</when>
+			<otherwise>
+				mar.type &gt;= 1
+			</otherwise>
+		</choose>
+		<if test="proId != null and proId != ''">
+			and ap.id = #{proId}
+		</if>
+		order By level asc
+	</select>
+	<!-- 根据资源id查询下级菜单或者按钮 -->
+	<select id="queryChildRes" parameterType="java.lang.String" resultType="com.zp.entity.Resources">
+		select
+		<include refid="selectId" />
+		from 
+			resources r
+		where 
+			parentId = #{id,jdbcType=VARCHAR}
+		order By 
+			level asc
+	</select>
+	
+		<!-- 新增资源保存-->
+	<insert id="add"   parameterType="com.zp.entity.Resources">
+		insert into resources(
+					name,
+					parentId,
+					resKey,
+					type,
+					resUrl,
+					level,
+					description,
+					PRO_ID
+								) 
+		values(
+				#{name,jdbcType=VARCHAR},
+				#{parentId,jdbcType=NUMERIC},
+				#{resKey,jdbcType=VARCHAR},
+				#{type,jdbcType=VARCHAR},
+				#{resUrl,jdbcType=VARCHAR},
+				#{level,jdbcType=NUMERIC},
+				#{description,jdbcType=VARCHAR},
+				#{proId,jdbcType=NUMERIC}
+				)
+	</insert>
+
+	<!-- 根据条件查询资源 -->
+	<select id="getResourcesByMap" parameterType="java.util.Map" resultType="com.zp.entity.Resources">
+		SELECT
+		mar.id,
+		mar.name,
+		mar.parentId,
+		mar.resKey,
+		mar.type,
+		mar.resUrl,
+		mar.level,
+		(select r.name from resources r where r.id = mar.parentId ) parentName,
+		description
+		FROM
+		resources mar
+		<where>
+			<if test="userId != null and userId != ''">
+				mar.id in
+				(SELECT
+				marr.resc_id
+				FROM
+				resources_role marr
+				WHERE
+				marr.role_id in (
+				SELECT
+				maur.role_id
+				FROM
+				user_role maur
+				WHERE maur.user_id = #{userId,jdbcType=VARCHAR}))
+			</if>
+			<if test="projectId != null or projectId == 0">
+				and mar.pro_id = #{projectId}
+			</if>
+			<if test="type != null and type != ''">
+				and mar.type = #{type}
+			</if>
+			<if test="parentId != null or parentId == 0">
+				and mar.parentId = #{parentId}
+			</if>
+
+		</where>
+
+		order by mar.pro_id ,mar.type,mar.level
+	</select>
+
+	
+	<select id="getRoleResources" parameterType="String" resultType="com.zp.entity.Resources">
+		SELECT 
+		id,
+	    name,
+	   parentId,
+	   resKey,
+	   type,
+	   resUrl,
+	 	level ,
+	   description
+		FROM resources WHERE id in(
+		SELECT resc_id FROM
+		resources_role WHERE role_id =#{id})
+	</select>
+	
+
+	<select id="queryNodeAuth" parameterType="String" resultType="com.zp.entity.Resources">
+		SELECT
+			id,
+			resKey,
+			resUrl
+		FROM resources WHERE id in(
+		SELECT resc_id FROM
+		resources_role WHERE role_id in(
+		SELECT role_id FROM user_role
+		WHERE user_id=#{id}))
+	</select>
+	
+	<delete id="deleteRoleRescours" parameterType="String">
+		delete from resources_role where role_id=#{roleId}
+	</delete>
+	
+	<!-- 增加角色和权限 -->
+	<insert id="saveRoleRescours" parameterType="com.zp.entity.ResourceRoles">
+		insert into resources_role(role_id,resc_id) values (#{roleId},#{rescId})
+	</insert>
+
+	<!-- 查询资源key是否唯一 -->
+	<select id="queryResKey" parameterType="String" resultType="com.zp.entity.Resources">
+	  select
+	  resKey
+	  from resources where resKey=#{resKey}
+	</select>
+<!-- 更新 -->
+	<update id="update" parameterType="com.zp.entity.Resources">
+	    update resources
+	    <set>
+	    	<if test="name != null and name != ''">
+	    		name = #{name,jdbcType=VARCHAR},
+	    	</if>
+	    	<if test="parentId != null">
+	    		parentId = #{parentId,jdbcType=NUMERIC},
+	    	</if>
+	    	<if test="resKey != null and resKey != ''">
+	    		resKey = #{resKey,jdbcType=VARCHAR},
+	    	</if>
+	    	<if test="type != null and type != ''">
+	    		type = #{type,jdbcType=VARCHAR},
+	    	</if>
+	    	<if test="resUrl != null and resUrl != ''">
+	    		resUrl = #{resUrl,jdbcType=VARCHAR},
+	    	</if>
+	    	<if test="level != null">
+	    		level = #{level,jdbcType=NUMERIC},
+	    	</if>
+	    	<if test="proId != null">
+	    		pro_id = #{proId,jdbcType=NUMERIC},
+	    	</if>
+	    	<if test="description != null and description != ''">
+	    		description = #{description,jdbcType=VARCHAR}
+	    	</if>
+	    </set>
+		<where>
+			<if test="id != null">
+				id = #{id,jdbcType=NUMERIC}
+			</if>
+		</where>			
+	</update>
+
+</mapper>

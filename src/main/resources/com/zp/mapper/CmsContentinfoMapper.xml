@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zp.mapper.CmsContentinfoMapper" >
+  <resultMap id="BaseResultMap" type="com.zp.entity.CmsContentinfo" >
+    <id column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="COLUMS_ID" property="columsId" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="INTEGER" />
+    <result column="IS_TOP" property="isTop" jdbcType="INTEGER" />
+    <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR" />
+    <result column="TITLE" property="title" jdbcType="VARCHAR" />
+    <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="UPDATE_TIME" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zp.entity.CmsContentinfo" extends="BaseResultMap" >
+    <result column="CONTENT" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    ID, COLUMS_ID, STATUS, IS_TOP, FILE_NAME, TITLE, CREATE_TIME, UPDATE_TIME
+  </sql>
+  <sql id="Blob_Column_List" >
+    CONTENT
+  </sql>
+  
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from cms_contentinfo
+    where ID = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="queryAll" resultMap="BaseResultMap" parameterType="java.util.Map" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from cms_contentinfo
+    <where>
+   		STATUS = 1 
+	    <if test="columsId != null and columsId != ''" >
+    	   and	 COLUMS_ID = #{columsId}
+      	</if>
+    </where>
+    order by IS_TOP,STATUS,update_time desc,create_time desc
+   	<if test="size != null " >
+       limit  #{size}
+   	</if>
+  </select>
+  <select id="queryList" resultMap="BaseResultMap" parameterType="java.util.Map" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from cms_contentinfo
+    <where>
+    	<if test="content.title != null and content.title != ''" >
+       	 TITLE  LIKE CONCAT(CONCAT('%', #{content.title}),'%')
+      	</if>
+      	<if test="content.columsId != null and content.columsId != ''" >
+       	 and COLUMS_ID= #{content.columsId}
+      	</if>
+    </where>
+    order by IS_TOP,STATUS,update_time desc,create_time desc
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from cms_contentinfo
+    where ID = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.zp.entity.CmsContentinfo" >
+    insert into cms_contentinfo (ID, COLUMS_ID, STATUS, 
+      IS_TOP, FILE_NAME, TITLE, 
+      CREATE_TIME, UPDATE_TIME, CONTENT
+      )
+    values (#{id,jdbcType=VARCHAR}, #{columsId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{isTop,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{content,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zp.entity.CmsContentinfo" >
+    insert into cms_contentinfo
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="columsId != null" >
+        COLUMS_ID,
+      </if>
+      <if test="status != null" >
+        STATUS,
+      </if>
+      <if test="isTop != null" >
+        IS_TOP,
+      </if>
+      <if test="fileName != null" >
+        FILE_NAME,
+      </if>
+      <if test="title != null" >
+        TITLE,
+      </if>
+      <if test="createTime != null" >
+        CREATE_TIME,
+      </if>
+      <if test="updateTime != null" >
+        UPDATE_TIME,
+      </if>
+      <if test="content != null" >
+        CONTENT,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="columsId != null" >
+        #{columsId,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="isTop != null" >
+        #{isTop,jdbcType=INTEGER},
+      </if>
+      <if test="fileName != null" >
+        #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zp.entity.CmsContentinfo" >
+    update cms_contentinfo
+    <set >
+      <if test="columsId != null" >
+        COLUMS_ID = #{columsId,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        STATUS = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="isTop != null" >
+        IS_TOP = #{isTop,jdbcType=INTEGER},
+      </if>
+      <if test="fileName != null" >
+        FILE_NAME = #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null" >
+        TITLE = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        CREATE_TIME = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null" >
+        CONTENT = #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where ID = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zp.entity.CmsContentinfo" >
+    update cms_contentinfo
+    set COLUMS_ID = #{columsId,jdbcType=VARCHAR},
+      STATUS = #{status,jdbcType=INTEGER},
+      IS_TOP = #{isTop,jdbcType=INTEGER},
+      FILE_NAME = #{fileName,jdbcType=VARCHAR},
+      TITLE = #{title,jdbcType=VARCHAR},
+      CREATE_TIME = #{createTime,jdbcType=TIMESTAMP},
+      UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+      CONTENT = #{content,jdbcType=LONGVARCHAR}
+    where ID = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zp.entity.CmsContentinfo" >
+    update cms_contentinfo
+    set COLUMS_ID = #{columsId,jdbcType=VARCHAR},
+      STATUS = #{status,jdbcType=INTEGER},
+      IS_TOP = #{isTop,jdbcType=INTEGER},
+      FILE_NAME = #{fileName,jdbcType=VARCHAR},
+      TITLE = #{title,jdbcType=VARCHAR},
+      CREATE_TIME = #{createTime,jdbcType=TIMESTAMP},
+      UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP}
+    where ID = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

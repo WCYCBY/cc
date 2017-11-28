@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zp.mapper.AuthDepartmentMapper">
+
+	<!-- 查询 -->
+	<select id="queryList" resultType="Map" parameterType="com.zp.entity.AuthDepartment">
+		select 
+		d.id,
+		d.name,
+		d.creater,
+		d.creatertime,
+		d.alter_name alterName,
+		d.altertime,
+		d.description 
+		from department d
+		<where>
+			<if test="authDepartment.name != null and authDepartment.name!= ''">
+				and instr(d.name,#{authDepartment.name})>0
+			</if>
+		</where>
+		order by d.creatertime desc
+	</select>
+	
+	<!-- 删除 -->
+	<delete id="deleteById" parameterType="java.lang.Integer">
+		delete from department where id = #{id,jdbcType=NUMERIC}
+	</delete>
+	
+	<!-- 新增 -->
+   <insert id="addDepartment" parameterType="com.zp.entity.AuthDepartment">
+     insert into department(
+     	<if test="name != null and name !=''">
+			name,
+		</if>
+		<if test="creater != null and creater !=''">
+			creater,
+		</if>
+     	<if test="description != null and description !=''">
+			description,
+		</if>
+     	creatertime)
+		values(
+			<if test="name != null and name != '' ">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="creater != null and creater != '' ">
+				#{creater,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null and description != '' ">
+				#{description,jdbcType=VARCHAR},
+			</if>
+			sysdate()
+		)
+   </insert>
+   
+  	<!--  根据id查询 -->
+   <select id="queryById" resultType="com.zp.entity.AuthDepartment" parameterType="java.lang.String">
+   	   select 
+   	   id,
+   	   name,
+   	   creater,
+   	   creatertime,
+   	   alter_name alterName,
+   	   altertime,
+   	   description 
+   	   from department  where id = #{id,jdbcType=NUMERIC}
+   </select>
+
+	<!-- 编辑 -->
+	<update id="editDepartment" parameterType="com.zp.entity.AuthDepartment">
+		update department
+		<set>
+			<if test="name != null and name != ''">
+				name = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="alterName != null and alterName != ''">
+				alter_name = #{alterName,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null and description != ''">
+				description = #{description,jdbcType=VARCHAR},
+			</if>
+			altertime = sysdate()
+		</set>
+		where id = #{id,jdbcType=NUMERIC}
+   </update>
+
+
+</mapper>

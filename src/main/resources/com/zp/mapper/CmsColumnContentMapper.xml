@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zp.mapper.CmsColumnContentMapper">
+	<!-- 根据id查询所有图片信息 -->
+	<select id="queryColumnContent" resultType="com.zp.entity.CmsColumnContent"
+		parameterType="java.lang.Integer">
+		SELECT c.id,
+		c.COLUMN_ID columnId,
+		c.picUrl,
+		c.picName,
+		c.picOrderIndex,
+		c.remark,
+		c.picLinkHttp,
+		c.creater,
+		c.CREATE_TIME createTime,
+		c.updater,c.UPDATE_TIME updateTime,
+		c.version 
+		FROM cms_column_content c
+		where
+		picUrl is not null
+		and 	 c.COLUMN_ID  = #{columnId}
+	</select>
+	<!-- 根据栏目id删除图片 -->
+	<delete id="deleteColumnContent" parameterType="java.lang.Integer">
+	DELETE from cms_column_content where column_id =#{columnId}
+	</delete>
+	<!-- 编辑数据保存 -->
+		<insert id="addColumnContent" parameterType="com.zp.entity.CmsColumnContent">
+			insert into
+			cms_column_content
+			(
+			COLUMN_ID,
+			PICURL,
+			REMARK,
+			PICORDERINDEX,
+			PICLINKHTTP,
+			CREATER,
+			CREATE_TIME
+			)
+			values
+			(
+			#{columnId,jdbcType=NUMERIC},
+			#{picUrl,jdbcType=VARCHAR},
+			#{remark,jdbcType=VARCHAR},
+			#{picOrderIndex,jdbcType=NUMERIC},
+			#{picLinkHttp,jdbcType=VARCHAR},
+			#{creater,jdbcType=NUMERIC},
+			sysdate()
+			)
+		</insert>
+</mapper>

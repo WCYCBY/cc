@@ -1,0 +1,50 @@
+server:
+  context-path: /
+  port: 80
+
+logging:
+  config: classpath:logback.xml
+
+
+#mysql
+spring:
+  datasource:
+    url: jdbc:mysql://192.168.2.211:3306/mes_auth?characterEncoding=utf8&useSSL=true
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: root
+  mvc:
+    static-path-pattern: /**
+  redis:
+    cluster:
+      max-redirects= 6
+      nodes:
+        - 192.168.2.138:7000
+        - 192.168.2.138:7001
+        - 192.168.2.138:7010
+        - 192.168.2.138:7011
+        - 192.168.2.138:7020
+        - 192.168.2.138:7021
+
+#freemarker
+  freemarker:
+    templateLoaderPath: classpath:/templates/
+    suffix: .ftl
+    cache: false
+    allow-request-override: false
+    expose-spring-macro-helpers: false
+    expose-request-attributes: false
+    expose-session-attributes: false
+    charset: utf-8
+    check-template-location: true
+    content-type: text/html
+
+
+#mybatis
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.zp.mapper
+
+
+
+

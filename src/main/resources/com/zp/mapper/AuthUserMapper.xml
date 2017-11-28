@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zp.mapper.AuthUserMapper">
+
+    <!--根据用户名查询用户-->
+    <select id="queryUserName" parameterType="java.lang.String" resultType="com.zp.entity.AuthUserEntity">
+      SELECT
+	      u.USERID          userId,
+	      u.USERNAME        userName,
+	      u.USERPASSWORD    userPassWord,
+	      u.DEPARTMENT department
+      FROM  user u
+      WHERE u.ISDEL = 0
+          AND u.USERNAME = #{userName}
+    </select>
+
+    <!--修改密码-->
+    <update id="updatePassword" parameterType="java.util.Map">
+      UPDATE `user`
+       			<set>
+					<if test="passwd  != null and passwd != ''">
+						USERPASSWORD = #{passwd,jdbcType=VARCHAR}
+					</if>
+				</set>
+		<where>
+			<if test="userId != null and userId != ''">
+				USERID = #{userId,jdbcType=VARCHAR}
+			</if>
+			AND
+			ISDEL = 0
+		</where>
+
+
+	</update>
+	
+	
+	<select id="getById" parameterType="String" resultType="com.zp.entity.AuthUserEntity">
+		select
+		u.userId,
+			u.userName,
+			(select r.name from role r where id in (SELECT ur.role_id FROM user_role ur
+			WHERE ur.user_id=u.userId)) roleName,
+			(SELECT ur.role_id FROM user_role ur
+			WHERE ur.user_id=u.userId) roleId,
+			u.userPassWord,
+			u.userNickName,
+			u.userRealname,
+			u.userAge,
+			u.userSex,
+			u.userAddress,
+			u.userPhone,
+			u.regtime,
+			u.lastLogintime, 
+		
+			u.level,
+			u.status,
+			u.userType,
+			dept.name as departmentName,
+			u.department,
+			u.code
+		from user u
+		left join department dept on dept.id = u.department
+		 where u.userId=#{userId}
+	</select>
+	<!--resultType="User" 每返回一条结果封装到User里 -->
+	<select id="query" resultType="com.zp.entity.AuthUserEntity" parameterType="java.util.HashMap">
+		select
+		u.userId,
+			u.userName,
+			(select r.name from role r where id in (SELECT ur.role_id FROM user_role ur
+			WHERE ur.user_id=u.userId)) roleName,
+			(SELECT ur.role_id FROM user_role ur
+			WHERE ur.user_id=u.userId) roleId,
+			u.userPassWord,
+			u.userNickName,
+			u.userRealname,
+			u.userAge,
+			u.userSex,
+			u.userAddress,
+			u.userPhone,
+			u.regtime,
+			u.lastLogintime, 
+			
+			u.level,
+			u.status,
+			u.userType,
+			dept.name as departmentName,
+			u.department,
+			u.code
+		from user u
+		left join department dept on dept.id = u.department
+		<where>
+				 u.isdel !=1 
+				 <if test="t != null">
+					<if test="t.userName != null and t.userName != ''">
+						and instr(u.userName,#{t.userName})>0
+					</if>
+					<if test="t.userNickName != null and t.userNickName != ''">
+						and instr(u.userNickName,#{t.userNickName})>0
+					</if>
+				 </if>
+			<if test="department != null and department != ''">
+				and u.department = #{department,jdbcType=VARCHAR}
+			</if>
+		</where>
+		order by u.userid desc
+	</select>
+	
+	<!-- 增加用户 -->
+	<insert id="addUser" parameterType="com.zp.entity.AuthUserEntity">
+		insert into user(
+			userName,
+			userSex,
+			userPassWord,
+			department,
+			userNickname, 
+			userRealname,
+			userPhone,
+			regTime,
+			lastLogintime,
+			code
+			 )
+			values (
+			#{userName,jdbcType=VARCHAR},
+			#{userSex},
+			#{userPassWord,jdbcType=VARCHAR},
+			#{department},
+			#{userNickName,jdbcType=VARCHAR},
+			#{userRealname,jdbcType=VARCHAR},
+			#{userPhone,jdbcType=VARCHAR},
+			sysdate(),
+			sysdate(),
+			#{code,jdbcType=NUMERIC}
+			)
+	</insert>
+	
+	<update id="updateUser" parameterType="com.zp.entity.AuthUserEntity">
+		update user
+		<set>
+			<if test="userSex != null">
+				userSex=#{userSex},
+			</if>
+			<if test="userPassWord != null and userPassWord != ''">
+				userPassWord=#{userPassWord,jdbcType=VARCHAR},
+			</if>
+			department=#{department,jdbcType=VARCHAR},
+			<if test="userNickName != null and userNickName != ''">
+				userNickName=#{userNickName,jdbcType=VARCHAR},
+			</if>
+			<if test="userRealname != null and userRealname != ''">
+				userRealname=#{userRealname,jdbcType=VARCHAR},
+			</if>
+			<if test="userPhone != null and userPhone != ''">
+				userPhone=#{userPhone,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where userId=#{userId}
+	</update>
+
+	<update id="updateDel" parameterType="String">
+		update user set isdel = 1 
+		where userid=#{userId}
+	</update>
+	
+	
+	<delete id="deleteUserRole" parameterType="String">
+		delete from user_role where user_id=#{userId,jdbcType=NUMERIC}
+	</delete>
+	
+	<sql id="selectId">
+		id,
+		enable,
+		name,
+		roleKey,
+		description
+	</sql>
+	<!--  查询没禁用的角色   -->
+	<select id="findRoles" resultType="com.zp.entity.Roles">
+		select
+		<include refid="selectId" />
+		from role
+		where id!=1 and enable=1
+	</select>
+	<!-- 增加角色和用户 -->
+	<insert id="saveUserRole" parameterType="com.zp.entity.UserRoles">
+		insert into user_role(user_id,role_id) values (#{userId,jdbcType=NUMERIC},#{roleId,jdbcType=NUMERIC})
+	</insert>
+	
+	<update id="updateUserLevel" parameterType="com.zp.entity.AuthUserEntity" >
+		update user set level=#{level} where userId=#{userId}
+	</update>
+	
+</mapper>

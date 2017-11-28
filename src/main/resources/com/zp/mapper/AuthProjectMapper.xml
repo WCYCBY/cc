@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zp.mapper.AuthProjectMapper">
+
+	<sql id="query_AuthProjectQuery">
+		ap.id id,
+  		ap.create_time createTime,
+  		ap.create_user createUser,
+  		ap.description description,
+  		ap.pro_key uniqueKey,
+  		ap.name name,
+  		ap.url url,
+  		ap.UPDATE_TIME updateTime,
+  		ap.icon icon,
+  		ap.ORDER_NUMBER orderNumber,
+  		atu.username createUserName
+	</sql>	
+<!-- 查询列 -->
+<select id="queryList" parameterType="Map" resultType="com.zp.entity.query.AuthProjectQuery">
+	SELECT 
+  		<include refid="query_AuthProjectQuery"/>
+  	FROM 
+  		project ap 
+  	left join 
+  		user atu 
+  	on 
+  		ap.create_user = atu.userid
+  	<where>
+
+  		<if test="authProject.name != null and authProject.name != ''">
+  			and instr(ap.name,#{authProject.name})>0
+  		</if>
+  		<if test="authProject.uniqueKey != null and authProject.uniqueKey != ''">
+  			and  instr(ap.pro_key,#{authProject.uniqueKey})>0
+  		</if>
+  	</where>
+  	Order by ap.ORDER_NUMBER asc,ap.id asc
+</select>
+<select id="queryAll" resultType="com.zp.entity.query.AuthProjectQuery">
+	SELECT 
+  		ap.id id,
+  		ap.create_time createTime,
+  		ap.create_user createUser,
+  		ap.description description,
+  		ap.pro_key uniqueKey,
+  		ap.name name,
+  		ap.icon icon,
+  		ap.ORDER_NUMBER orderNumber,
+  		ap.url url
+  	FROM 
+  		project ap 
+  	Order by ap.ORDER_NUMBER asc ,ap.id asc
+</select>
+<!-- 新增 -->
+<insert id="add" parameterType="com.zp.entity.AuthProject">
+	insert into 
+		project(
+			name,
+			pro_key,
+			url,
+			CREATE_USER,
+			DESCRIPTION, 
+			<if test="icon != null and icon !=''">
+				icon,
+			</if>
+			CREATE_TIME,
+			ORDER_NUMBER)
+		values(
+			#{name,jdbcType=VARCHAR},
+			#{uniqueKey,jdbcType=VARCHAR},
+			#{url,jdbcType=VARCHAR},
+			#{createUser,jdbcType=VARCHAR},
+			#{description,jdbcType=VARCHAR},
+			<if test="icon != null and icon != '' ">
+				#{icon,jdbcType=VARCHAR},
+			</if>
+			sysdate(),
+			#{orderNumber,jdbcType=NUMERIC}
+		)
+</insert>
+<!-- 根据用户名查询用户 -->
+<select id="querySingleUserByKey" parameterType="java.lang.String" resultType="com.zp.entity.query.AuthProjectQuery">
+	SELECT 
+		<include refid="query_AuthProjectQuery"/>
+   FROM 
+  		project ap 
+  	left join 
+  		user atu 
+  	on 
+  		ap.create_user = atu.userid
+  	where ap.pro_key = #{uniqueKey,jdbcType=VARCHAR}
+</select>
+<!-- 根据id查询 -->
+<select id="queryById" resultType="com.zp.entity.query.AuthProjectQuery" parameterType="java.lang.Integer">
+	select 
+		ap.id id,
+  		ap.create_time createTime,
+  		ap.create_user createUser,
+  		ap.description description,
+  		ap.pro_key uniqueKey,
+  		ap.name name,
+  		ap.icon icon,
+  		ap.ORDER_NUMBER orderNumber,
+  		ap.url url
+  	from 
+  		project ap
+  	where ap.id = #{id,jdbcType=NUMERIC}
+</select>
+<!-- 删除，根据id删除 ，真删-->
+<delete id="delById" parameterType="java.lang.Integer">
+	delete from project where id = #{id,jdbcType=NUMERIC}
+</delete>
+<!--修改项目  -->
+<update id="update" parameterType="com.zp.entity.AuthProject">
+	update 
+		project 
+	<set>
+		<if test="name != null and name != ''">
+			name=#{name,jdbcType=VARCHAR},
+		</if>
+		<if test="url != null and url != ''">
+			url = #{url,jdbcType=VARCHAR},
+		</if>
+		<if test="description != null and description != ''">
+			description = #{description,jdbcType=VARCHAR},
+		</if>
+		<if test="updateUser != null and updateUser !=''">
+			update_user = #{updateUser,jdbcType=NUMERIC},
+		</if>
+		<if test="icon != null and icon != ''">
+			icon = #{icon,jdbcType=VARCHAR},
+		</if>
+		<if test="orderNumber != null and orderNumber != ''">
+			ORDER_NUMBER = #{orderNumber,jdbcType=NUMERIC},
+		</if>
+		update_time=sysdate()
+	</set>
+	where id = #{id,jdbcType=NUMERIC}
+</update>
+<!-- 根据角色id查询出项目与角色对应的列表   -->
+<select id="queryProjectRoleByRoleId" parameterType="java.lang.String" resultType="com.zp.entity.AuthProjectRole">
+	SELECT 
+		apr.role_id roleId,
+		apr.pro_id projectId
+	FROM 
+		project_role apr 
+	where apr.role_id = #{roleId,jdbcType=VARCHAR}
+</select>
+<!-- 删除与角色管理的项目 -->
+<update id="delProRole" parameterType="java.lang.String">
+	delete from 
+		project_role 
+	where 
+		role_id = #{roleId,jdbcType=VARCHAR}
+</update>
+<!-- 分配权限，添加项目与角色的关联 -->
+<insert id="saveRoleProject" parameterType="com.zp.entity.AuthProjectRole">
+	insert into 
+		project_role 
+		(
+			role_id ,
+			pro_id
+			) 
+		values(
+			#{roleId,jdbcType=NUMERIC},
+			#{projectId,jdbcType=NUMERIC}
+		)
+</insert>
+<!--根据项目id查询关联的用户角色  -->
+<select id="queryRoleByPro" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+	SELECT 
+		mapr.role_id 
+	FROM  
+		project_role mapr 
+	where 
+		mapr.pro_id = #{id,jdbcType=NUMERIC}
+</select>
+<!--根据用户id查询该用户拥有权限的项目列表-->
+	<select id="queryProListByUserId" parameterType="java.lang.String" resultType="com.zp.entity.query.AuthProjectQuery">
+		SELECT
+		ap.id,
+		ap.pro_key uniqueKey,
+		ap.name,
+		ap.url,
+		ap.icon
+		FROM
+			project ap
+		where
+		ap.id in
+		(SELECT
+		mapr.pro_id
+		FROM project_role mapr
+		where mapr.role_id
+		in(
+		SELECT role_id
+		FROM user_role maur
+		left join role  mar
+		on maur.role_id = mar.id
+		where mar.enable = 1
+		and user_id = #{userId,jdbcType=VARCHAR}))
+		order by ap.ORDER_NUMBER asc,ap.id asc
+	</select>
+	
+	<select id="getRoleProject" parameterType="String" resultType="com.zp.entity.AuthProject">
+		SELECT 
+		<include refid="query_AuthProjectQuery"/>
+		FROM project WHERE id in(
+		SELECT pro_id FROM
+		project_role WHERE role_id =#{id})
+	</select>
+</mapper>

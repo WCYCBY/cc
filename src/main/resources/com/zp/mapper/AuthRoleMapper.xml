@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zp.mapper.AuthRoleMapper">
+	<!-- 以下与实体类的中字段一致 -->
+	<sql id="selectId">
+	id,
+	enable,
+	name,
+	roleKey,
+	description
+	</sql>
+	<!--resultType="Roles"  每返回一条结果封装到Roles里 -->
+	<select id="queryRole" resultType="com.zp.entity.Roles" parameterType="java.util.Map">
+		select
+		<include refid="selectId" />
+		from role
+		
+		<where>
+			<if test="t.name != null and t.name != ''">
+			name LIKE CONCAT(CONCAT('%',#{t.name}),'%')
+			</if>
+		</where>
+		order by id desc	
+	</select>
+	
+	
+	
+	
+	<!-- 新增 -->
+	<insert id="addRole" parameterType="com.zp.entity.Roles">
+		insert into role(
+		name,
+		enable,
+		roleKey,
+		description
+		)
+		values (#{name,jdbcType=VARCHAR},
+		#{enable,jdbcType=NUMERIC},#{roleKey,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR}
+		)
+		
+	</insert>
+	
+	
+	
+	<select id="queryById" parameterType="String" resultType="com.zp.entity.Roles">
+		select
+		<include refid="selectId" />
+		from role where id=#{id,jdbcType=NUMERIC}
+	</select>
+	
+	
+	<!--修改角色  -->
+	<update id="update" parameterType="com.zp.entity.Roles">
+		update role
+		<set>
+				name=#{name,jdbcType=VARCHAR},
+				enable=#{enable,jdbcType=NUMERIC},
+				roleKey=#{roleKey,jdbcType=VARCHAR},
+				description=#{description,jdbcType=VARCHAR}
+		</set>
+		where id=#{id}
+	</update>
+	
+	
+	<delete id="deleteById" parameterType="String">
+		delete from role where
+		id=#{roleId,jdbcType=NUMERIC}
+	</delete>
+	
+	
+	<!-- 根据角色id查出用户 -->
+	<select id="queryUserRolesByRoleId" parameterType="String" resultType="com.zp.entity.AuthUserEntity">
+	  select * from USER where userid in (select user_id from user_role where role_id=#{rolesId,jdbcType=NUMERIC})
+	</select>
+	
+	
+	<!-- 根据角色名查出角色 -->
+	<select id="queryByName" parameterType="String" resultType="com.zp.entity.Roles">
+	  select
+	  <include refid="selectId"/>
+	  from role where name=#{name}
+	</select>
+	
+	
+	<!-- 根据角色key查出角色 -->
+	<select id="queryByRolesKey" parameterType="String" resultType="com.zp.entity.Roles">
+	  select
+	  <include refid="selectId"/>
+	  from role where roleKey=#{rolesKey}
+	</select>
+	
+</mapper>

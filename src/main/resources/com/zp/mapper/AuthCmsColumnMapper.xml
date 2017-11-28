@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zp.mapper.AuthCmsColumnMapper">
+	<!-- 以下与实体类的中字段一致 -->
+	<sql id="selectId">
+	ID,
+	NAME,
+	CREATER,
+	CREATE_TIME,
+	UPDATER,
+	UPDATE_TIME,
+	STATUS,
+	FTL,
+	TYPE,
+	ISRELEASE,
+	UPPER_LIMIT_PIC,
+	LOWER_LIMIT_PIC,
+	UPPER_LIMIT_TEXT,
+	LOWER_LIMIT_TEXT,
+	NOTE,
+	VERSION,
+	ftl_for_content
+	</sql>
+	<select id="columnList" resultType="com.zp.entity.CmsColumn" parameterType="java.util.Map">
+		select
+		<include refid="selectId" />
+		from cms_column
+		
+		<where>
+			<if test="t.note != null and t.note != ''">
+			note LIKE CONCAT(CONCAT('%',#{t.note}),'%')
+			</if>
+		</where>
+		order by id desc	
+	</select>
+	
+	
+	
+	<!-- 新增 -->
+	<insert id="add" parameterType="com.zp.entity.CmsColumn">
+		insert into cms_column(
+		name,
+		note,
+		type,
+		upper_limit_pic,
+		lower_limit_pic,
+		ftl,
+		CREATER,
+		CREATE_TIME
+		)
+		values (#{name,jdbcType=VARCHAR},
+		#{note,jdbcType=VARCHAR},
+		#{type},
+		#{upperLimitPic},
+		#{lowerLimitPic},
+		#{ftl,jdbcType=VARCHAR},
+		#{creater},
+		sysdate()
+		)
+		
+	</insert>
+	
+	
+	<select id="queryOnlyName" parameterType="java.lang.String"
+		resultType="com.zp.entity.CmsColumn">
+		select
+		<include refid="selectId" />
+		from
+		cms_column
+		where
+		name=#{name,jdbcType=VARCHAR}
+
+	</select>
+	
+	<!-- 根据id查询 -->
+	<select id="queryById" parameterType="java.lang.Integer"
+		resultType="com.zp.entity.CmsColumn">
+		select
+			<include refid="selectId" />
+		from
+			cms_column c
+		where c.id=#{id}
+	</select>
+	
+	
+	<update id="updateColumn" parameterType="com.zp.entity.CmsColumn">
+		update cms_column
+		<set>
+			<if test="name != null and name!= ''">
+				name=#{name},
+			</if>
+			<if test="updater != null and updater != ''">
+				UPDATER=#{updater},
+			</if>
+			
+				UPDATE_TIME=sysdate(),
+			
+			<if test="status != null and status != ''">
+				STATUS=#{status},
+			</if>
+			<if test="ftl != null and ftl != ''">
+				FTL=#{ftl,jdbcType=VARCHAR},
+			</if>
+			<if test="type != null and type != ''">
+				TYPE=#{type},
+			</if>
+			<if test="isrelease != null and isrelease != ''">
+				ISRELEASE=#{isrelease},
+			</if>
+			<if test="upperLimitPic != null and upperLimitPic != ''">
+				UPPER_LIMIT_PIC=#{upperLimitPic},
+			</if>
+			<if test="lowerLimitPic != null and lowerLimitPic != ''">
+				LOWER_LIMIT_PIC=#{lowerLimitPic},
+			</if>
+			<if test="upperLimitText != null and upperLimitText != ''">
+				UPPER_LIMIT_TEXT=#{upperLimitText},
+			</if>
+			<if test="lowerLimitText != null and lowerLimitText != ''">
+				LOWER_LIMIT_TEXT=#{lowerLimitText},
+			</if>
+			<if test="note != null and note != ''">
+				NOTE=#{note},
+			</if>
+			<if test="version != null and version != ''">
+				VERSION=#{version}
+			</if>
+			<if test="ftlForContent != null and ftlForContent != ''">
+				ftl_for_content=#{ftlForContent}
+			</if>
+		</set>
+		where ID=#{id}
+	</update>
+	
+	
+	<delete id="deleteColumn" parameterType="String">
+		delete from cms_column where
+		id=#{id}
+	</delete>
+	
+</mapper>
